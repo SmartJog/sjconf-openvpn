@@ -1,0 +1,4 @@
+plugins/*.py                usr/share/sjconf-openvpn/plugins
+templates/openvpn/*.conf    usr/share/sjconf-openvpn/templates/openvpn
+templates/openvpn/*.default usr/share/sjconf-openvpn/templates/openvpn
+confs/*.conf                usr/share/sjconf-openvpn/confs

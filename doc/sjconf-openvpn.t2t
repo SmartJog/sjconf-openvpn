@@ -1,0 +1,123 @@
+SJCONF-openvpn
+sjconf-openvpn
+%%mtime
+
+%!target : man
+%!encoding : utf-8
+%!postproc(man): "^(\.TH.*) 1 "  "\1 8 "
+
+= NAME =
+
+sjconf-openvpn - handle **openvpn**(8) configuration through **sjconf**(8)
+
+= DESCRIPTION =
+
+sjconf is a configuration wrapper that handles global and server specific
+configuration, deployment and service restart.
+
+The openvpn plugin allows for handling the **openvpn**(8) configuration files.
+
+The plugin allows one **[openvpn]** section and multiple sections of the form
+**[openvpn:vpn_name]**.
+
+Section **openvpn** must have the following options set:
+
+:    **template** = //path//
+Path to the template for openvpn configuration.
+
+:    **template_openvpn** = //path//
+Path to the /etc/default/openvpn file.
+
+
+= OPTIONS =
+
+Section **openvpn** may contain any of the value of **openvpn:vpn_name**
+sections. They will be used as defaults for the given options.
+
+Sections **openvpn:vpn_name** must contain the following options:
+
+:    **autostart** = //boolean//
+Should this VPN be started on boot.
+
+:    **dev** = //device_name//
+Name of the TUN device that will be used by this VPN.
+
+:    **ca** = //path//
+Path to the PEM encoded X509 certificate of the Certification Authority.
+
+:    **cert** = //path//
+Path to the PEM encoded X509 public certificate.
+
+:    **key** = //path//
+Path to the PEM encoded X509 private key.
+
+:    **link_mtu** = //integer//
+MTU to be used over the VPN.
+
+:    **resolv_retry** = //integer|infite//
+How many times should openvpn try to connect to the remote host.
+
+:    **remote-1** = //host:port//
+Item of the **remote** sequence. Defines one of the remote host for this VPN.
+
+:    **option-1** = //value//
+Item of the **option** sequence. Any of the **openvpn**(8) option that does not
+need a value (ex: remote-random, nobind, persist-key).
+
+:    **cipher** = //cipher//
+Cipher to use to encrypt traffic over the VPN link.
+
+:    **verbosity** = //integer//
+Set the verbosity of  the logs.
+
+:    **mute** = //integer//
+Set the number of times of message may occur before it is silenced.
+
+:    **proto** = //tcp-client|udp|tcp//
+Set the protocol used by **openvpn** to connect to the remote host.
+
+:    **client** = //boolean//
+Whether this VPN definition is an **openvpn** client or a server.
+
+:    **script_security** = //integer//
+Set the script-security value, see **openvpn**(8) man page.
+
+:    **up_script** = //path//
+Path to the script called upon successful connection to the remote host.
+
+
+= EXAMPLE =
+
+  [openvpn]
+  template = templates/openvpn/openvpn.conf
+  template_openvpn = templates/openvpn/openvpn.default
+  autostart = no
+  verbosity = 3
+  mute = 20
+  link_mtu = 1450
+  resolv_retry = infinite
+  cipher = BF-CBC
+  option-100 = nobind
+  option-101 = mute-replay-warnings
+  option-102 = persist-key
+
+  [openvpn:example-vpn]
+  autostart = yes
+  dev = tun1
+  ca = test-ca.crt
+  cert = mycert.crt
+  key = mykey.key
+  remote-1 = vpn.example.com:1194
+  proto = tcp-client
+  client = yes
+  script_security = 0
+
+
+= AUTHOR =
+
+The sjconf openvpn plugin and this manual page have been written by the **SmartJog** company.
+
+= SEE ALSO =
+
+**sjconf**(8), **openvpn**(8).
+

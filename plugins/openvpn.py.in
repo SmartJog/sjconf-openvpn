@@ -1,0 +1,77 @@
+# -*- coding: utf-8 -*-
+
+import os
+import re
+import sjconf
+
+
+class Plugin(sjconf.PluginWithTemplate):
+
+    VERSION = '@PACKAGE_VERSION@'
+
+    class ConfSection(sjconf.Conf.ConfSection):
+        """ Custom key type conversion class. """
+
+        def __getitem__(self, key):
+            value = sjconf.Conf.ConfSection.__getitem__(self, key)
+            if key == 'client_bool':
+                value = value and 'client' or '# server'
+            elif key == 'up_script':
+                value = 'up "%s"' % value
+            elif key == 'remote_sequence':
+                value = '\n'.join(['remote ' + ' '.join(item.split(':')) for item in value])
+            elif key == 'option_sequence':
+                value = '\n'.join(value)
+            return value
+
+    def services_to_restart(self):
+        return ('openvpn',)
+
+    def services_to_reload(self):
+        return ('openvpn',)
+
+    def conf_types(self):
+        """ List of special option types. """
+        return (
+            (re.compile('^%s(:|$)' % self.name()), 'autostart', 'bool'),
+            (re.compile('^%s(:|$)' % self.name()), 'client', 'bool'),
+            (re.compile('^%s(:|$)' % self.name()), 'option', 'sequence'),
+            (re.compile('^%s(:|$)' % self.name()), 'remote', 'sequence'),
+        )
+
+    def conf_files_path(self):
+        """ List of configuration files to handle. """
+        prefix = self.name() + ':'
+        # openvpn configuration files
+        conf_files = [
+            os.path.sep.join([self.sjconf.etc_dir, 'openvpn', section[len(prefix):] + '.conf'])
+            for section in self.conf if section.startswith(self.name() + ':')
+        ]
+        # init script configuration file
+        conf_files.append(
+            os.path.sep.join([self.sjconf.etc_dir, 'default', 'openvpn'])
+        )
+        return conf_files
+
+    def template_conf(self, file_path):
+        """ Select appropriate configuration for @file_path. """
+        conf = self.conf[self.name()]
+        prefix = self.name() + ':'
+
+        if os.path.basename(file_path) != 'openvpn':
+            # For each VPN definition
+            conf.update(
+                self.conf[
+                    self.name() + ':' + os.path.basename(file_path).replace('.conf', '')
+                ]
+            )
+        else:
+            # For /etc/default/openvpn
+            autostart_list = [section[len(prefix):] for section in self.conf if section.startswith(prefix) and self.conf[self.name()]['autostart_bool']]
+            if len(autostart_list) == 0:
+                conf['autostart_list'] = 'none'
+            else:
+                conf['autostart_list'] = ' '.join(autostart_list)
+
+        return conf
+

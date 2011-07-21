@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+PLUGINS="openvpn"
+
+for plugin in $PLUGINS
+do
+	if ! sjconf --list-plugins | grep "^Plugin $plugin$" > /dev/null
+	then
+		sjconf --install-conf --link /usr/share/sjconf-openvpn/confs/$plugin.conf
+		if [ -e /usr/share/sjconf-openvpn/templates/$plugin ]
+		then
+			sjconf --install-template --link /usr/share/sjconf-openvpn/templates/$plugin
+		fi
+		sjconf --install-plugin --link /usr/share/sjconf-openvpn/plugins/$plugin.py
+		sjconf --enable-plugin $plugin
+	fi
+
+done
