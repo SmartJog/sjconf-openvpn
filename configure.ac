@@ -1,5 +1,5 @@
 AC_PREREQ(2.65)
-AC_INIT([sjconf-openvpn], [0.1.0~dev])
+AC_INIT([sjconf-openvpn], [0.1.0])
 
 AM_INIT_AUTOMAKE([-Wall foreign])
 
